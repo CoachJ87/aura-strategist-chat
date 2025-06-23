@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -14,8 +15,7 @@ export default function BrandStrategistChat() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [conversationComplete, setConversationComplete] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const projectId = 'default-project'; // In a real app, this would come from your app's state or params
+  const [projectId] = useState(() => uuidv4());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,7 +42,7 @@ export default function BrandStrategistChat() {
         },
         body: JSON.stringify({
           message: message,
-          session_id: sessionId || undefined,
+          session_id: sessionId || uuidv4(),
           project_id: projectId,
           message_type: 'user_message',
         }),
@@ -55,7 +55,9 @@ export default function BrandStrategistChat() {
           ...prev,
           { role: 'assistant', content: data.message },
         ]);
-        setSessionId(data.session_id);
+        if (data.session_id) {
+          setSessionId(data.session_id);
+        }
         setConversationComplete(data.conversation_complete);
       } else {
         throw new Error(data.message || 'Failed to get response');
